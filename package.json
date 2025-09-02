@@ -1,0 +1,17 @@
+{
+  "name": "monitor-dht-web",
+  "version": "1.0.0",
+  "description": "Site para monitorar temperatura e umidade do ESP32 via MQTT",
+  "main": "index.js",
+  "scripts": {
+    "start": "live-server web" 
+  },
+  "author": "Seu Nome",
+  "license": "MIT",
+  "dependencies": {
+    "paho-mqtt": "^1.1.0"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
+  }
+}
