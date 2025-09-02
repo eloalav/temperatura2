@@ -1,36 +1,50 @@
+#include <WiFi.h>
+#include <WebServer.h>
+#include "DHT.h"
 
-const id = "esp32-" + new Date().getTime();
-const cliente = new Paho.MQTT.Client("broker.hivemq.com", 8884, id);
+#define DHTPIN 5
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
 
-cliente.connect({
-  useSSL: true,
-  onSuccess: function() {
-    console.log("Conectado ao broker MQTT");
-    cliente.subscribe("eloa/temperatura");
-    cliente.subscribe("eloa/umidade");
-  },
-  onFailure: function() {
-    alert("Falha na conexão com o broker MQTT");
+const char* ssid = "MARIANALINDA";
+const char* password = "ELYSALINDA";
+
+WebServer server(80);
+
+void handleRoot() {
+  float temperatura = dht.readTemperature();
+  float umidade = dht.readHumidity();
+
+  if (isnan(temperatura) || isnan(umidade)) {
+    server.send(500, "text/plain", "Erro ao ler sensor");
+    return;
   }
-});
-cliente.onMessageArrived = function(message) {
-  console.log("Mensagem recebida: ", message.destinationName, message.payloadString);
 
-  if (message.destinationName === "eloa/temperatura") {
-    document.getElementById("temp").innerText = "Temperatura: " + message.payloadString + " °C";
-  }
-  if (message.destinationName === "eloa/umidade") {
-    document.getElementById("umid").innerText = "Umidade: " + message.payloadString + " %";
-  }
-};
+  String json = "{";
+  json += "\"temperatura\":" + String(temperatura, 1) + ",";
+  json += "\"umidade\":" + String(umidade, 1);
+  json += "}";
 
-function atualizar() {
-  const msg = new Paho.MQTT.Message("1");
-  msg.destinationName = "eloa/atualizar";
-  cliente.send(msg);
+  server.send(200, "application/json", json);
 }
 
-function desligar() {
-  cliente.disconnect();
-  alert("Desconectado do servidor MQTT");
+void setup() {
+  Serial.begin(115200);
+  dht.begin();
+  
+  WiFi.begin(ssid, password);
+  Serial.print("Conectando ao WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nWiFi conectado!");
+  Serial.println("IP do ESP32: " + WiFi.localIP().toString());
+
+  server.on("/", handleRoot);
+  server.begin();
+}
+
+void loop() {
+  server.handleClient();
 }
