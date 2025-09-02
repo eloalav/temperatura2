@@ -1,6 +1,6 @@
 async function atualizar() {
   try {
-    const response = await fetch("http://IP_DO_ESP32/"); // substitua pelo IP do ESP32
+    const response = await fetch("https://temperatura2.onrender.com");
     const data = await response.json();
 
     document.getElementById("temp").innerText = "Temperatura: " + data.temperatura + " °C";
@@ -10,5 +10,4 @@ async function atualizar() {
   }
 }
 
-// Atualiza automaticamente a cada 5 segundos
 setInterval(atualizar, 5000);
